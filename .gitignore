@@ -3,3 +3,5 @@
 bin/*
 distribution/*
 resources/build.properties
+resources/build.properties
+lib/webbit-all-in-one.jar
