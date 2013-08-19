@@ -40,8 +40,12 @@ import org.webbitserver.handler.*;
 
 
 public class WebSocketP5 implements WebSocketHandler {
+	
   // Reference to the sketch
   PApplet                    parent;
+  
+  // Reference to the event target
+  Object                    target;
 
   // The websocket events
   Method                     newMessageEvent;
@@ -70,17 +74,22 @@ public class WebSocketP5 implements WebSocketHandler {
    * 
    */
   public WebSocketP5(PApplet theParent) {
-    this(theParent, 8080, DEFAULT_SOCKET);
+    this(theParent, 8080, DEFAULT_SOCKET, theParent);
   }
 
   public WebSocketP5(PApplet theParent, int port) {
-    this(theParent, port, DEFAULT_SOCKET);
+    this(theParent, port, DEFAULT_SOCKET, theParent);
   }
 
   public WebSocketP5(PApplet theParent, int port, String socketname) {
+	    this(theParent, port, socketname, theParent);
+  }
+
+  public WebSocketP5(PApplet theParent, int port, String socketname, Object theTarget) {
     parent = theParent;
     this.port = port;
     this.socketname = socketname;
+    this.target = theTarget;
 
     server = WebServers.createWebServer(this.port);
     
@@ -109,20 +118,20 @@ public class WebSocketP5 implements WebSocketHandler {
 
     try {
       Class args[] = { WebSocketConnection.class, String.class };
-      newMessageEvent = parent.getClass().getMethod("websocketOnMessage", args);
+      newMessageEvent = target.getClass().getMethod("websocketOnMessage", args);
     }
     catch (Exception e) {}
 
     try {
       Class args[] = { WebSocketConnection.class };
-      newConnectionOpenedEvent = parent.getClass().getMethod("websocketOnOpen",
+      newConnectionOpenedEvent = target.getClass().getMethod("websocketOnOpen",
           args);
     }
     catch (Exception e) {}
 
     try {
       Class args[] = { WebSocketConnection.class };
-      newConnectionClosedEvent = parent.getClass().getMethod(
+      newConnectionClosedEvent = target.getClass().getMethod(
           "websocketOnClose", args);
     }
     catch (Exception e) {}
@@ -230,7 +239,7 @@ public class WebSocketP5 implements WebSocketHandler {
     if (newConnectionOpenedEvent != null) {
       try {
         Object args[] = { connection };
-        newConnectionOpenedEvent.invoke(parent, args);
+        newConnectionOpenedEvent.invoke(target, args);
       }
       catch (Exception e) {
         newConnectionOpenedEvent = null;
@@ -245,7 +254,7 @@ public class WebSocketP5 implements WebSocketHandler {
     if (newConnectionClosedEvent != null) {
       try {
         Object args[] = { connection };
-        newConnectionClosedEvent.invoke(parent, args);
+        newConnectionClosedEvent.invoke(target, args);
       }
       catch (Exception e) {
         newConnectionClosedEvent = null;
@@ -261,7 +270,7 @@ public class WebSocketP5 implements WebSocketHandler {
     if (newMessageEvent != null) {
       try {
         Object args[] = { connection, message };
-        newMessageEvent.invoke(parent, args);
+        newMessageEvent.invoke(target, args);
       }
       catch (Exception e) {
         newMessageEvent = null;
